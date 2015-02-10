@@ -15,8 +15,8 @@ var interval = setInterval(f, 1000);
 
 ___a.compute(function(x)
 {
-  ___b.appear(x * 5);
   console.info('a: ', x);
+  ___b.appear(x * 5);
 });
 
 ___b.compute(function(x)
