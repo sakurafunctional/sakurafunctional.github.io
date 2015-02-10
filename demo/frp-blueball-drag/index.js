@@ -16,15 +16,15 @@ var Component1 = React.createClass(
   {
     return {cursor: {x: 100, y: 100}};
   },
-  onMouseMove = function(e)
+  onMouseMove: function(e)
   {
     ___mouseCursor.appear({x: e.clientX, y: e.clientY});
   },
-  onMouseDown = function(e)
+  onMouseDown: function(e)
   {
     ___mouseIsDown.appear(true);
   },
-  onMouseUp = function(e)
+  onMouseUp: function(e)
   {
     ___mouseIsDown.appear(false);
   },
