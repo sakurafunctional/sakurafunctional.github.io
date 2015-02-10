@@ -6,26 +6,9 @@
 
 var timelineCapacity = moment.duration(1, 'seconds');
 
+var ___mouseCursor = ___(timelineCapacity);
 var ___mouseIsDown = ___(timelineCapacity);
 var ___mouseDrag = ___(timelineCapacity);
-
-var onMouseMove = function(e)
-{
-  var cursor = {
-    x: e.clientX,
-    y: e.clientY
-  };
-};
-
-var onMouseDown = function(e)
-{
-  ___mouseIsDown.appear(true);
-};
-
-var onMouseUp = function(e)
-{
-  ___mouseIsDown.appear(false);
-};
 
 var Component1 = React.createClass(
 {
@@ -33,23 +16,40 @@ var Component1 = React.createClass(
   {
     return {cursor: {x: 100, y: 100}};
   },
+  onMouseMove = function(e)
+  {
+    ___mouseCursor.appear({x: e.clientX, y: e.clientY});
+  },
+  onMouseDown = function(e)
+  {
+    ___mouseIsDown.appear(true);
+  },
+  onMouseUp = function(e)
+  {
+    ___mouseIsDown.appear(false);
+  },
   componentDidMount: function()
   {
     var component = this;
 
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("mousemove", this.onMouseMove);
+    document.addEventListener("mousedown", this.onMouseDown);
+    document.addEventListener("mouseup", this.onMouseUp);
+
+    ___mouseCursor.compute(function(x)
+    {
+      if(___mouseIsDown.value(___('NOW')))
+        ___mouseDrag.appear(x);
+    });
 
     ___mouseIsDown.compute(function(x)
     {
-      if(x)
-        ___mouseDrag.appear(cursor);
+
     });
 
     ___mouseDrag.compute(function(x)
     {
-      component.setState({cursor: ___mouseDrag.value(___('NOW'))});
+      component.setState({cursor: x});
     });
   },
   render: function()
