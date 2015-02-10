@@ -43,7 +43,7 @@ var Component1 = React.createClass(
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("mouseup", onMouseUp);
-    
+
     ___mouseIsDown.compute(function() {});
     ___mouseDrag.compute(function()
     {
@@ -52,8 +52,9 @@ var Component1 = React.createClass(
   },
   render: function()
   {
-      return ( <div> <svg height = "100%"  width = "100%" >
-      <circle cx = {  this.state.cursor.x  }  cy = {  this.state.cursor.y }  r = "10"  fill = "blue" />
+      return (<div><svg height = "100%"  width = "100%" >
+      <circle cx = {this.state.cursor.x}
+      cy = {this.state.cursor.y} r="10" fill="blue" />
       </svg></div>);
   }
 });
