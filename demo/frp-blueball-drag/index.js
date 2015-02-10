@@ -15,9 +15,6 @@ var onMouseMove = function(e)
     x: e.clientX,
     y: e.clientY
   };
-
-  if(___mouseIsDown.value(___('NOW')))
-     ___mouseDrag.appear(cursor);
 };
 
 var onMouseDown = function(e)
@@ -44,8 +41,13 @@ var Component1 = React.createClass(
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("mouseup", onMouseUp);
 
-    ___mouseIsDown.compute(function() {});
-    ___mouseDrag.compute(function()
+    ___mouseIsDown.compute(function(x)
+    {
+      if(x)
+        ___mouseDrag.appear(cursor);
+    });
+
+    ___mouseDrag.compute(function(x)
     {
       component.setState({cursor: ___mouseDrag.value(___('NOW'))});
     });
