@@ -1,6 +1,4 @@
 /* jshint node: true */
-/* jshint jquery: true */
-/* jshint sub: true */
 /* global window,document, $,alert,history */
 "use strict";
 
