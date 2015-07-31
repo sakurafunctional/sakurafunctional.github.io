@@ -119,7 +119,7 @@ ___.world = ___((t) => { // world engine
   //MKS system of units
 
   var ___coordinate = ___();
-  var T0 = t() / 1000; //convert unit to second
+
   var V0 = 85.0; // m/s
   var deg = 30; //degree
   var THETA = deg / 180 * Math.PI; //radian
@@ -134,7 +134,6 @@ ___.world = ___((t) => { // world engine
     };
   };
 
-
   //==============================================================
   var Drawscale = 4; //4 dot = 1 meter
 
@@ -148,10 +147,15 @@ ___.world = ___((t) => { // world engine
           com.forceUpdate();
         });
 
-        var f = () => {
-          ___.world = ___coordinate.appear(coordinateEquation(t() / 1000 - T0));
+        var init = () => {
+          var T0 = t();
+          var f = () => {
+            ___.world = ___coordinate.appear(coordinateEquation((t() - T0) / 1000));
+          };
+          var timer = setInterval(f, 10); //calculate 10milsec resolution
+
         };
-        var timer = setInterval(f, 10); //calculate 10milsec resolution
+        setTimeout(init, 0);
       },
 
       render() {
@@ -171,10 +175,7 @@ ___.world = ___((t) => { // world engine
       }
     });
 
-
   var mount = React.render(<ReactComponent ___x={___()} ___y={___()} />, document.body);
-
-
 //==============================================================
 //===========================================================================
 });
