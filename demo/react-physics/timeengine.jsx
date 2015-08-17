@@ -122,7 +122,7 @@
       return seq1;
     };
     //-----------------
-
+    seq.init = false;
     seq.isUpdated = false;
 
     seq.syncseqs = [];
@@ -131,7 +131,6 @@
     seq.dseqs = false;
 
     seq.aInit = () => {
-      log('can be the first update of no dependency seq without eq');
 
       seq.dseqs = [];
 
@@ -140,6 +139,14 @@
           if (addArrayList(seq.dseqs, referredseq)) {
             //no exist and add
             walk(referredseq);
+            //---------
+            referredseq.syncseqs.map((syncseq) => {
+              if (addArrayList(seq.dseqs, syncseq)) {
+                //no exist and add
+                walk(syncseq);
+              }
+            });
+          //---------
           }
         });
       };
@@ -226,16 +233,10 @@
                 });
 
               };
-              var dependencyErrorCheck = () => {
-                if (seq.syncseqs.length === 0) {
-                  return false;
-                } else {
-                  return true;
-                }
-              };
 
               if (seq.isUpdated === false) {
-                if (dependencyErrorCheck() === false) {
+                if ((seq.init === false) && (seq.syncseqs.length === 0)) {
+                  seq.init = true;
                   seq.aInit(); //the first update of no dependency seq without eq
                   ff();
                 } else {
@@ -246,7 +247,7 @@
                 log('@@@@@@@@@@@    seq.isUpdated === true    @@@@@@@@@@');
                 log('     dependencyErrorCheck    ');
                 // can be proper new update cycle, can be illegal
-                if (dependencyErrorCheck() === true) {
+                if (seq.syncseqs.length !== 0) {
                   throw new Error("the value depends on another value");
                 } else {
                   var clearUpdatedFlag = () => {
