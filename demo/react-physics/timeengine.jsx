@@ -119,7 +119,6 @@
       seq.onDiscover((val) => {
         return seq1.t = f(val, t0);
       })();
-
       return seq1;
     };
     //-----------------
@@ -222,6 +221,7 @@
                   {
                     log('$$$$$$$$$$$$$$$$$$$$$$$$ the referredseqs all syncseq.isUpdated === true $$$$$$$$$$$$$$$$$$$$$$$$');
                     referredseq.t = referredseq.eqF();
+                  //arg must be empty in terms of math eq style
                   }
                 });
 

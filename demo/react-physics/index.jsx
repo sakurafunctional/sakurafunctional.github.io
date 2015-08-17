@@ -19,6 +19,13 @@
   x.t = __.sync([t], () => V0 * Math.cos(THETA) * t.t);
   y.t = __.sync([t], () => V0 * Math.sin(THETA) * t.t - G * Math.pow(t.t, 2));
 
+  //atomic position update
+  var pos = __.seq();
+  pos.t = __.sync([t, x, y], () => ({
+      x: x.t,
+      y: y.t
+  }));
+
   //==============================================================
   var Drawscale = 4; //4 dot = 1 meter
 
@@ -26,31 +33,26 @@
 
     constructor() {
       super();
-
-      this.rx = __.seq();
-      this.ry = __.seq();
-
-      this.rx.t = __.sync([x], () => 50 + x.t * Drawscale);
-      this.ry.t = __.sync([y], () => 300 - y.t * Drawscale);
-
-      __.t = this.rx.onDiscover(() => {
+      this.pos = __.seq();
+      this.pos.t = __.sync([pos], () => ({
+          x: 50 + pos.t.x * Drawscale,
+          y: 300 - pos.t.y * Drawscale
+      }));
+      __.t = this.pos.onDiscover(() => {
+        this.rx = this.pos.t.x;
+        this.ry = this.pos.t.y;
         this.forceUpdate();
       });
-      __.t = this.ry.onDiscover(() => {
-        this.forceUpdate();
-      });
-
     }
 
     render() {
-
       var el = (
       <div>
           <h1>For new shot, Just Reload the browser page</h1>
           <svg height = "100%"  width = "100%">
               <circle r="5" fill="blue"
-      cx = {this.rx.t}
-      cy = {this.ry.t}/>
+      cx = {this.rx}
+      cy = {this.ry}/>
           </svg>
         </div>
       );
