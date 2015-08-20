@@ -1,11 +1,17 @@
 (() => {
   'use strict';
 
-  //  var util = require('util'); //debug
-  var log = (obj) => {
-    //    console.log(util.inspect(obj, false, null));
-    //  console.log(obj);
-  };
+  var log;
+  if (typeof module !== 'undefined' && module.exports) {
+    var util = require('util'); //debug
+    log = (obj) => {
+      //  console.info(util.inspect(obj, false, null));
+    };
+  } else {
+    log = (obj) => {
+      //    console.info(obj);
+    };
+  }
   //-----------------------------------
   var containList = (array, item) => {
     var flag = false;
@@ -24,8 +30,43 @@
     return !flag;
   };
   //-----------------------------------
+  //__([a,b], true)     true as store
+  var timeseq = (...args) => {
 
-  var timeseq = {};
+    if (Array.isArray(args[0])) {
+
+      var ds = args[0];
+      var store = args[1];
+
+      var seq1 = seq(store);
+
+      //ds and us
+      seq1.ds = ds;
+      // add self seq as the u to d
+      ds.map((d) => {
+        addArrayList(d.us, seq1);
+      });
+
+      seq1.eq = () => {
+        return Date.now();
+      };
+
+      log('########__([x])###########');
+      log({
+        seq1
+      });
+
+      return seq1;
+
+    } else {
+      var seq1 = seq(args[0]);
+
+      log({
+        seq1
+      });
+      return seq1;
+    }
+  };
 
   Object.defineProperties(timeseq,
     {
@@ -59,6 +100,7 @@
   timeseq.intervalSeq = (interval, store) => {
     var seq = timeseq.seq(store);
 
+    //seq.intervalSeq = true;
     var f = () => {
       seq.t = Date.now();
     };
@@ -70,6 +112,7 @@
   timeseq.timeoutSeq = (interval, store) => {
     var seq = timeseq.seq(store);
 
+    //seq.timeoutSeq = true;
     var f = () => {
       seq.t = Date.now();
     };
@@ -79,27 +122,15 @@
   };
   //------------------
 
-  timeseq.sync = (syncseqs, equation) => {
-
-    syncseqs.map((syncseq) => {
-    });
-    return {
-      synctimeseq: {
-        syncseqs,
-        equation
-      }
-    };
-  };
-
   //--------
-  timeseq.seq = (store) => { // return new seq
+  var seq = (store) => { // return new seq
     var seq = []; //seq is vanilla JS array + features
     var valOnT;
     var computingF = [];
 
     seq.store = store;
 
-    seq.onDiscover = (f) => { // this fn is fine on each seqs
+    seq.onCompute = (f) => { // this fn is fine on each seqs
       var f1 = () => {
         computingF[computingF.length] = f; //push  f
       };
@@ -107,35 +138,40 @@
     };
 
     //-----------------
-    seq.map = (f) => {
-      var seq1 = timeseq.seq(seq.store);
+    seq.tMap = (f) => {
+      var seq1 = timeseq.seq(seq.store); // new with left-store
+
+      seq1.ds = [seq];
+      addArrayList(seq.us, seq1);
+
       var t0 = Date.now();
-      seq.onDiscover((val) => {
-        return seq1.t = f(val, t0);
-      })();
+      seq1.eq = (t) => f(t, t0);
+
       return seq1;
     };
     //-----------------
+
     seq.init = false;
     seq.isUpdated = false;
 
-    seq.syncseqs = [];
-    seq.referredseqs = [];
+    seq.us = [];
+    seq.ds = [];
 
-    seq.dseqs = false;
+    seq.eco = false;
 
-    seq.aInit = () => {
-      seq.dseqs = [];
+    seq.aInit = () => { //for bottom seq
+      log('aInit!!!!!!!!!!!!!!!!!!!!!!!!!!');
+      seq.eco = [];
       var walk = (seq1) => {
-        seq1.referredseqs.map((referredseq) => {
-          if ((referredseq !== seq) && (addArrayList(seq.dseqs, referredseq))) {
+        seq1.us.map((u) => {
+          if (addArrayList(seq.eco, u)) {
             //no exist and add
-            walk(referredseq);
+            walk(u);
             //---------
-            referredseq.syncseqs.map((syncseq) => {
-              if ((syncseq !== seq1) && (addArrayList(seq.dseqs, syncseq))) {
+            u.ds.map((d) => {
+              if ((d !== seq1) && (addArrayList(seq.eco, d))) {
                 //no exist and add
-                walk(syncseq);
+                walk(d);
               }
             });
           //---------
@@ -143,6 +179,11 @@
         });
       };
       walk(seq);
+
+      log('$$$$$$ seq.eco ');
+      log(seq.eco.length);
+      log(seq.eco);
+
     };
 
     var IOT = {};
@@ -169,90 +210,77 @@
           get() {
             return valOnT;
           },
-          set(valOrEqF) { //foo.t is set
-            if ((!valOrEqF) || (!valOrEqF.synctimeseq)) {
-              var ff = () => {
-                valOnT = valOrEqF;
-                seq.isUpdated = true;
+          set(tval) {
 
-                //----------------------
-                if (store) {
-                  var T = Date.now();
-                  IOT[T] = seq.length;
-                  TOI[seq.length] = T;
-                  this[seq.length] = valOnT;
-                }
-                //----------------------
-                //finally do own task-----------------
-                computingF
-                  .map((f) => {
-                    f(valOnT);
-                  });
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            var ff = () => {
+              valOnT = tval;
+              seq.isUpdated = true;
 
-                //propagate ======================================
-                seq.referredseqs.map((referredseq) => {
-
-                  var checkF = () => {
-                    if (referredseq.syncseqs.length === 0) {
-                      return false;
-                    } else {
-                      var flag = true;
-                      referredseq.syncseqs.map((syncseq) => {
-                        if (syncseq.isUpdated === false) {
-                          flag = false; //no functional library here
-                        }
-                      });
-                      return flag;
-                    }
-                  };
-                  if ((referredseq.isUpdated === false)
-                    && (checkF() === true))
-                  // the referredseq's all syncseq.isUpdated === true
-                  {
-                    referredseq.t = referredseq.eqF();
-                  //arg must be empty in terms of math eq style
-                  }
-                });
-
-              };
-              if (seq.isUpdated === false) {
-                if ((seq.init === false) && (seq.syncseqs.length === 0)) {
-                  seq.init = true;
-                  seq.aInit(); //the first update of no dependency seq without eq
-                  ff();
-                } else {
-                  ff(); //library internal updated, keep going
-                }
-              } else {
-                // can be proper new update cycle, can be illegal
-                if (seq.syncseqs.length !== 0) {
-                  throw new Error("the value depends on another value");
-                } else {
-                  var clearUpdatedFlag = () => {
-                    seq.dseqs.map((seq1) => {
-                      seq1.isUpdated = false;
-                    });
-                  };
-                  clearUpdatedFlag();
-                  ff(); //manual updated new cycle
-                }
+              //----------------------
+              if (store) {
+                var T = Date.now();
+                IOT[T] = seq.length;
+                TOI[seq.length] = T;
+                this[seq.length] = valOnT;
               }
-            //======================================
-            } else {
-              seq.isUpdated = false;
-              //retain the equationF
-              seq.eqF = valOrEqF.synctimeseq.equation;
-              //obtain own seq.syncseqs on = triggered
-              seq.syncseqs = valOrEqF.synctimeseq.syncseqs;
-              if (seq.syncseqs.length === 0) {
-
-              } else {
-                // add self seq as the referredseq to syncseq
-                seq.syncseqs.map((syncseq) => {
-                  addArrayList(syncseq.referredseqs, seq);
+              //----------------------
+              //finally do own task-----------------
+              computingF
+                .map((f) => {
+                  f(valOnT);
                 });
+
+              //propagate ======================================
+              seq.us.map((u) => {
+
+                var checkF = () => {
+                  var flag = true;
+                  u.ds.map((d) => {
+                    if (d.isUpdated === false) {
+                      flag = false; //no functional library here
+                    }
+                  });
+                  return flag;
+                };
+                if ((u.isUpdated === false)
+                  && (checkF() === true))
+                // the us's all d.isUpdated === true
+                {
+                  u.t = u.eq(tval);
+                }
+              });
+
+            };
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+            if (seq.isUpdated === false) {
+              if ((seq.init === false)
+                && (seq.ds.length === 0)) { // bottom
+                seq.init = true;
+                seq.aInit(); //the first update of bottom
+                ff();
+              } else {
+                ff(); //library internal updated, keep going
+              }
+            } else {
+              // can be proper new update cycle, can be illegal
+              if (seq.ds.length !== 0) { // not bottom
+
+                throw new Error("the value depends on another value");
+              } else { //bottom
+
+                log('############bottom update!###########');
+                var clearUpdatedFlag = () => {
+                  seq.eco.map((seq1) => {
+                    seq1.isUpdated = false;
+                  });
+                };
+                clearUpdatedFlag();
+                ff(); //manual updated new cycle
               }
             }
+
           }
         }
       });
@@ -260,6 +288,8 @@
     return seq;
   };
   //--------
+  timeseq.seq = seq;
+
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = timeseq;
