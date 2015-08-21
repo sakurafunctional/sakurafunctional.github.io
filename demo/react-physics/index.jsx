@@ -12,9 +12,9 @@
   //t seconds elapsed since t0
   var t = __.intervalSeq(10).tMap((tt, t0) => (tt - t0) / 1000);
 
-  var x = t.tMap(() => V0 * Math.cos(THETA) * t.t);
+  var x = t.tMap((t) => V0 * Math.cos(THETA) * t);
 
-  var y = t.tMap(() => V0 * Math.sin(THETA) * t.t - G * Math.pow(t.t, 2));
+  var y = t.tMap((t) => V0 * Math.sin(THETA) * t - G * Math.pow(t, 2));
 
   //atomic position update
   var pos = __([t, x, y])
@@ -30,10 +30,10 @@
 
     constructor() {
       super();
-      this.pos = pos
-        .tMap(() => ({
-            x: 50 + pos.t.x * Drawscale,
-            y: 300 - pos.t.y * Drawscale
+      var timeseq = pos
+        .tMap((val) => ({
+            x: 50 + val.x * Drawscale,
+            y: 300 - val.y * Drawscale
         }))
         .tMap((val) => {
           this.rx = val.x;
