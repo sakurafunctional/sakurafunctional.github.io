@@ -16,13 +16,6 @@
 
   var y = t.tMap((t) => V0 * Math.sin(THETA) * t - G * Math.pow(t, 2));
 
-  //atomic position update
-  var pos = __([t, x, y])
-    .tMap((val) => ({
-        x: x.t,
-        y: y.t
-    }));
-
   //==============================================================
   var Drawscale = 4; //4 dot = 1 meter
 
@@ -30,14 +23,11 @@
 
     constructor() {
       super();
-      var timeseq = pos
-        .tMap((val) => ({
-            x: 50 + val.x * Drawscale,
-            y: 300 - val.y * Drawscale
-        }))
-        .tMap((val) => {
-          this.rx = val.x;
-          this.ry = val.y;
+      var timeseq = __([x, y])
+        .tMap(([x, y]) => [50 + x * Drawscale, 300 - y * Drawscale])
+        .tMap(([x, y]) => {
+          this.rx = x;
+          this.ry = y;
           this.forceUpdate();
         });
     }

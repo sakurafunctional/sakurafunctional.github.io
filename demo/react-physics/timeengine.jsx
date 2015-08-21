@@ -47,9 +47,7 @@
         addArrayList(d.us, seq1);
       });
 
-      seq1.eq = () => {
-        return Date.now();
-      };
+      seq1.eq = () => ds.map((seq) => seq.t);
 
       log('########__([x])###########');
       log({
