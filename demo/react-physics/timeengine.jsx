@@ -126,17 +126,8 @@
   var seq = (store) => { // return new seq
     var seq = []; //seq is vanilla JS array + features
     var valOnT;
-    var computingF = [];
 
     seq.store = store;
-
-    seq.onCompute = (f) => { // this fn is fine on each seqs
-      var f1 = () => {
-        computingF[computingF.length] = f; //push  f
-      };
-      return f1;
-    };
-
     //-----------------
     seq.tMap = (f) => {
       var seq1 = timeseq.seq(seq.store); // new with left-store
@@ -164,20 +155,19 @@
       seq.eco = [];
       var walk = (seq1) => {
         seq1.us.map((u) => {
-          if (addArrayList(seq.eco, u)) {
+          if ((u !== seq1) && (addArrayList(seq.eco, u))) {
             //no exist and add
             walk(u);
-            //---------
-            u.ds.map((d) => {
-              if ((d !== seq1) && (addArrayList(seq.eco, d))) {
-                //no exist and add
-                walk(d);
-              }
-            });
-          //---------
+          }
+        });
+        seq1.ds.map((d) => {
+          if ((d !== seq1) && (addArrayList(seq.eco, d))) {
+            //no exist and add
+            walk(d);
           }
         });
       };
+
       walk(seq);
 
       log('$$$$$$ seq.eco ');
@@ -225,12 +215,6 @@
                 this[seq.length] = valOnT;
               }
               //----------------------
-              //finally do own task-----------------
-              computingF
-                .map((f) => {
-                  f(valOnT);
-                });
-
               //propagate ======================================
               seq.us.map((u) => {
 

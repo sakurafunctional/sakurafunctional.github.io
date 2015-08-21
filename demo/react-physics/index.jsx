@@ -12,9 +12,9 @@
   //t seconds elapsed since t0
   var t = __.intervalSeq(10).tMap((tt, t0) => (tt - t0) / 1000);
 
-  var x = __([t]).tMap(() => V0 * Math.cos(THETA) * t.t);
+  var x = t.tMap(() => V0 * Math.cos(THETA) * t.t);
 
-  var y = __([t]).tMap(() => V0 * Math.sin(THETA) * t.t - G * Math.pow(t.t, 2));
+  var y = t.tMap(() => V0 * Math.sin(THETA) * t.t - G * Math.pow(t.t, 2));
 
   //atomic position update
   var pos = __([t, x, y])
@@ -26,21 +26,20 @@
   //==============================================================
   var Drawscale = 4; //4 dot = 1 meter
 
-  class ReactComponent extends React . Component {
+  class ReactComponent extends React.Component {
 
     constructor() {
       super();
-      this.pos = __([pos])
+      this.pos = pos
         .tMap(() => ({
             x: 50 + pos.t.x * Drawscale,
             y: 300 - pos.t.y * Drawscale
-        }));
-
-      __.t = this.pos.onCompute((val) => {
-        this.rx = val.x;
-        this.ry = val.y;
-        this.forceUpdate();
-      });
+        }))
+        .tMap((val) => {
+          this.rx = val.x;
+          this.ry = val.y;
+          this.forceUpdate();
+        });
     }
 
     render() {
